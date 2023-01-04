@@ -18,6 +18,11 @@ mainwindow.title("PatternCreateTool" + softwareversion)
 mainwindow.config(bg="#F0FFFF")
 ############################
 def GetInfo():
+    ti = I2CLISTBOX.curselection()
+    print(f"你选择了{ti}")
+def CreatePattern():
+    pass
+def ImportIni():
     pass
 ############################
 I2CGUI = TK.Frame(mainwindow,bg="#F0E68C",bd=10,height=400,width=200)
@@ -52,7 +57,7 @@ I2CENTRY3.grid(column=1,row=3)
 I2CENTRY4.grid(column=3,row=1)
 I2CENTRY5.grid(column=3,row=2)
 I2CENTRY6.grid(column=3,row=3)
-I2CBUTTON1 = TK.Button(I2CGUI,text="输入生成Pattern",activeforeground="#2F4F4F",activebackground="#00BFFF"
+I2CBUTTON1 = TK.Button(I2CGUI,text="配置确认",activeforeground="#2F4F4F",activebackground="#00BFFF"
                        ,bg="#87CEFA",bd=6
                        ,command=GetInfo)
 I2CBUTTON1.grid(column=3,row=4)
@@ -62,14 +67,17 @@ I2CSELECT.set(0) #默认选择Dirver
 TK.Radiobutton(I2CGUI,text="Driver",bg="#008B8B",variable=I2CSELECT,value=0).grid(column=1,row=4)
 TK.Radiobutton(I2CGUI,text="Compare",bg="#008B8B",variable=I2CSELECT,value=1).grid(column=2,row=4)
 
-# I2CMSG1 = TK.Message(I2CGUI,text="若不指定生成的文件名，将生成Address_Data的组合文件名:)",bg="#808080",width=400)
-# I2CMSG1.grid(column=0,row=8,columnspan=4)
+I2CMSG1 = TK.Message(I2CGUI,text="若不指定生成的文件名，将生成Address_Data的组合文件名:)"
+                     ,bg="#808080",borderwidth=2,width=300)
+I2CMSG1.grid(column=2,row=5,columnspan=2,rowspan=2)
 TK.Label(I2CGUI,text="Multi_SlaveID",bg="#F0E68C",font=("Consolas",10)).grid(column=0,row=5)
 TK.Label(I2CGUI,text="Multi_DataList",bg="#F0E68C",font=("Consolas",10)).grid(column=0,row=6)
 I2CMSG2 = TK.Message(I2CGUI,text="6A",bg="#BDB76B",width=400)
 I2CMSG2.grid(column=1,row=5)
 
-I2CLISTBOX = TK.Listbox(I2CGUI,selectmode=MULTIPLE,height=8)
+I2CLISTBOX = TK.Listbox(I2CGUI,selectmode=MULTIPLE
+                        # ,setgrid=True
+                        ,height=8)
 LIST = [
     "D,0x32aa,0x30,",
     "D,0x32ab,0x3f",
@@ -84,18 +92,18 @@ LIST = [
     "C,0x3000,0x08,",
         ]
 for var in range(0,len(LIST)):
-    I2CLISTBOX.insert(var,LIST[var])
-I2CLISTBOX.grid(column=1,row=6,columnspan=2)
+    I2CLISTBOX.insert(var,str(var)+"," + LIST[var])
+I2CLISTBOX.grid(column=1,row=6)
 # I2CSCROLLBAR.config(command = I2CLISTBOX.yview)
 I2CGUI.grid(column=0,row=0)
 I2CBUTTON2 = TK.Button(I2CGUI,text="导入配置文件",activeforeground="#2F4F4F",activebackground="#00BFFF"
                        ,bg="#87CEFA",bd=6
-                       ,command=GetInfo)
+                       ,command=ImportIni)
 I2CBUTTON2.grid(column=0,row=7)
 I2CBUTTON2 = TK.Button(I2CGUI,text="配置文件生成Pattern",activeforeground="#2F4F4F",activebackground="#00BFFF"
                        ,bg="#87CEFA",bd=6
-                       ,command=GetInfo)
-I2CBUTTON2.grid(column=1,row=7,columnspan=2)
+                       ,command=CreatePattern)
+I2CBUTTON2.grid(column=1,row=7)
 
 
 
