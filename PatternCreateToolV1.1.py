@@ -3,7 +3,7 @@ from ttkbootstrap import utility
 from ttkbootstrap.constants import *
 import re
 ########################
-_softwareversion = 'V1.0'
+_softwareversion = 'V1.1'
 ########################
 class PatternCreateTool(ttk.Frame):
     def __init__(self, master):

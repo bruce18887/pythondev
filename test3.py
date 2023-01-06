@@ -1,29 +1,38 @@
+import time
+import tkinter
+
 import ttkbootstrap as ttk
 from ttkbootstrap import utility
 from ttkbootstrap.constants import *
 import re
 ########################
-_softwareversion = 'V1.0'
+_softwareversion = 'V1.2'
 ########################
+def GUIConsole_Print(arg):
+    GUIConsoleSCR.insert('end',
+        time.strftime('[%Y-%m-%d %H:%M:%S]',time.localtime())+'  ' +arg + '\n')#末尾插入
+    GUIConsoleSCR.see(END)
 def OnTreeViewSelect(event):
     # print("Begin")
-    totalvar =''
     for var in I2C_RegListBox.selection():
-        totalvar += (I2C_RegListBox.set(var)['seq']+' ')
+        GUIConsole_Print(I2C_RegListBox.set(var)['seq']+' ')
         # GUIConsoleStr.set(I2C_RegListBox.set(var)['seq'])
         # GUIConsoleStr.set(I2C_RegListBox.item(var,option="values")[0])
     # print("End")
-    GUIConsoleStr.set(totalvar)
 def OnTreeViewHeaderPressed():
-    GUIConsoleStr.set("你点击了Header")
+    GUIConsole_Print("指令框内的为待转化的寄存器指令:),点击CreatePattern会转换里面所有的指令")
 def AddRegSequence():
-    GUIConsoleStr.set("你点击了AddRegSequence")
+    GUIConsole_Print("你点击了AddRegSequence")
 def DeleteSelectSequence():
-    GUIConsoleStr.set("你点击了DeleteSelectSequence")
+    GUIConsole_Print("Now excute DeleteSelectSequence()")
+    for SelectIID in I2C_RegListBox.selection():#selection 返回选择的所有IID，用循环逐个删除
+        GUIConsole_Print(I2C_RegListBox.set(SelectIID)['seq'] + ' 已经删除')
+        I2C_RegListBox.delete(SelectIID)
+
 def ReadFromInIFile():
-    GUIConsoleStr.set("你点击了ReadFromInIFile")
+    GUIConsole_Print("你点击了ReadFromInIFile")
 def CreatePattern():
-    GUIConsoleStr.set("你点击了CreatePattern")
+    GUIConsole_Print("你点击了CreatePattern")
 ########################
 master = ttk.Window(
         title="PatternCreateTool " + _softwareversion,
@@ -34,7 +43,7 @@ master = ttk.Window(
         # united morph journal darkly superhero solar  cyborg vapor simplex  cerculean
         resizable=(False, False)
     )
-master.position_center()
+
 # masterstyle = master.style()
 # form variables
 GUIConsoleStr = ttk.StringVar(value="Wait ... ...")
@@ -71,8 +80,12 @@ I2C_WFT.grid(row=0, column=3,padx=4,pady=4)
 I2C_Signal.grid(row=1, column=3,padx=4,pady=4)
 I2C_FileName.grid(row=2, column=3,padx=4,pady=4)
 # for PatternCreateMode
-ttk.Radiobutton(I2C_Setting, text="Driver", variable=I2C_ModeSelect, value=0).grid(row=3, column=1)
-ttk.Radiobutton(I2C_Setting, text="Compare", variable=I2C_ModeSelect, value=1).grid(row=3, column=2)
+I2C_DriverMode =  ttk.Radiobutton(I2C_Setting, text="Driver", variable=I2C_ModeSelect, value=0)
+I2C_DriverMode.bind("<ButtonRelease-1>",lambda event:GUIConsole_Print("Set CreateMode to Driver"))
+I2C_DriverMode.grid(row=3, column=1)
+I2C_CompareMode = ttk.Radiobutton(I2C_Setting, text="Compare", variable=I2C_ModeSelect, value=1)
+I2C_CompareMode.bind("<ButtonRelease-1>",lambda event:GUIConsole_Print("Set CreateMode to Compare"))
+I2C_CompareMode.grid(row=3, column=2)
 ########################################
 I2C_RegMessage = ttk.Labelframe(master=I2C_GUI_Frame, text="I2C_RegMessage")
 I2C_RegMessage.pack(side=LEFT, fill=BOTH,expand=True,pady=8,padx=5)
@@ -115,9 +128,26 @@ ttk.Button(master=I2C_CreateControl,text="CreatePattern",width=20,command=Create
 GUIConsole = ttk.Labelframe(master=master, text="GUIConsole")
 GUIConsole.pack(side=BOTTOM, fill=BOTH,expand=True,pady=8,padx=5)
 # ttk.Label(GUIConsole,text="This will print some app log:)").grid(row=0,column=0,padx=10,pady=10)
-ttk.Label(GUIConsole,textvariable=GUIConsoleStr,font=("Consolas",10),anchor=W).grid(row=0,column=0)
-
-
+# ttk.Label(GUIConsole,textvariable=GUIConsoleStr,font=("Consolas",10),anchor=W).grid(row=0,column=0)
+GUIConsoleSCR =  ttk.ScrolledText(master=GUIConsole,height=4)
+GUIConsoleSCR.grid(row=0,column=0)
+for line in LIST:
+        # GUIConsoleSCR.insert('end',
+        # time.strftime('[%Y-%m-%d %H:%M:%S]',time.localtime())+'  ' +line + '\n')#末尾插入
+        GUIConsole_Print(line)
+GUIMouseRightMenu = ttk.Menu(master=master)
+GUIMouseRightMenu.add_command(label="指令提示"
+                    ,command=lambda:GUIConsole_Print("指令框内的为待转化的寄存器指令:),点击CreatePattern会转换里面所有的指令"))
+GUIMouseRightMenu.add_separator()
+GUIMouseRightMenu.add_command(label="生成提示"
+                    ,command=lambda:GUIConsole_Print("Pattern生成仅根据Trans_SlaveID和Trans_Reg来使用预设模板生成"))
+GUIMouseRightMenu.add_separator()
+GUIMouseRightMenu.add_command(label="读取配置文件提示"
+                    ,command=lambda:GUIConsole_Print("选择ini文件将自动导入所有信息"))
+master.bind("<Button-3>", lambda event:GUIMouseRightMenu.post(event.x_root, event.y_root))
+GUIEdgeTopMenu = ttk.Menu(master=master)
+GUIEdgeTopMenu.add_command(label="文件")
+GUIEdgeTopMenu.add_command(label="查看")
 
 ########################################
 SPI_Setting = ttk.Labelframe(master=NoteBookPage, text="SPI_Setting")
@@ -168,4 +198,6 @@ NoteBookPage.pack(fill=X)
 NoteBookPage.add(child=I2C_GUI_Frame, text="I2C")
 NoteBookPage.add(child=SPI_Setting, text="SPI")
 NoteBookPage.add(child=UART_Setting, text="UART")
+master.config(menu=GUIEdgeTopMenu)
+master.position_center()
 master.mainloop()
