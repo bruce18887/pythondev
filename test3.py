@@ -33,6 +33,11 @@ def ReadFromInIFile():
     GUIConsole_Print("你点击了ReadFromInIFile")
 def CreatePattern():
     GUIConsole_Print("你点击了CreatePattern")
+# def
+class GUIMessageGet:
+    def __init__(self):
+        print("Create GUIMessageGet Obj")
+        pass
 ########################
 master = ttk.Window(
         title="PatternCreateTool " + _softwareversion,
