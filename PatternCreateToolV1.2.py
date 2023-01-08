@@ -1,6 +1,6 @@
 import time
 import tkinter
-
+import ReadInIFile as RINI
 import ttkbootstrap as ttk
 from ttkbootstrap import utility
 from ttkbootstrap.constants import *
@@ -8,6 +8,7 @@ import re
 ########################
 _softwareversion = 'V1.2'
 ########################
+I2C_RINI_OBJ =  RINI.I2C('test.ini')
 def GUIConsole_Print(arg):
     GUIConsoleSCR.insert('end',
         time.strftime('[%Y-%m-%d %H:%M:%S]',time.localtime())+'  ' +arg + '\n')#末尾插入
@@ -30,7 +31,12 @@ def DeleteSelectSequence():
         I2C_RegListBox.delete(SelectIID)
 
 def ReadFromInIFile():
-    GUIConsole_Print("你点击了ReadFromInIFile")
+    # GUIConsole_Print("你点击了ReadFromInIFile")
+    GUIConsole_Print(I2C_RINI_OBJ.ReadSlaveID())
+    GUIConsole_Print(I2C_RINI_OBJ.ReadWFTName())
+    GUIConsole_Print(I2C_RINI_OBJ.ReadSignals())
+    for Data in I2C_RINI_OBJ.ReadDataAfterCheck():
+        GUIConsole_Print(Data)
 def CreatePattern():
     GUIConsole_Print("你点击了CreatePattern")
 # def
