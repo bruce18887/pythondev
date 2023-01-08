@@ -1,5 +1,6 @@
 import time
-import tkinter
+# import tkinter
+from tkinter import filedialog
 import ReadInIFile as RINI
 import ttkbootstrap as ttk
 from ttkbootstrap import utility
@@ -8,7 +9,10 @@ import re
 ########################
 _softwareversion = 'V1.2'
 ########################
-I2C_RINI_OBJ =  RINI.I2C('test.ini')
+# I2C_RINI_OBJ =  RINI.I2C
+GUIThemes = ("flatly","litera",  "minty",  "lumen", "sandstone", "yeti", "pulse",
+            "united", "morph", "journal", "darkly" ,"superhero", "solar",
+            "cyborg", "vapor", "simplex",  "cerculean")
 def GUIConsole_Print(arg):
     GUIConsoleSCR.insert('end',
         time.strftime('[%Y-%m-%d %H:%M:%S]',time.localtime())+'  ' +arg + '\n')#末尾插入
@@ -22,28 +26,97 @@ def OnTreeViewSelect(event):
     # print("End")
 def OnTreeViewHeaderPressed():
     GUIConsole_Print("指令框内的为待转化的寄存器指令:),点击CreatePattern会转换里面所有的指令")
+def EntryInputFormatCheck():
+    pass
+def TreeViewInsertValues(InputTreeViewControl,InputValues):
+    #目前只有一列，插入一个string就行
+    InputTreeViewControl.insert('', END, values=InputValues)
 def AddRegSequence():
-    GUIConsole_Print("你点击了AddRegSequence")
+    # GUIConsole_Print("你点击了AddRegSequence")
+    RegListBoxSetLabel = False #判断是否对I2CRegListBox 进行插入value
+    Temp = I2C_SlaveID.get()
+    Temp = re.sub(pattern=r'0[xX]',repl='',string=Temp,count=0)#先把0x去掉
+    # print(re.match(r'(([a-f0-9]?)([a-f0-9])?)',Temp,re.I).span())
+
+    if re.match(r'(([a-f0-9]?)([a-f0-9])?)',Temp,re.I).span() == (0,2):
+        GUIConsole_Print('SlaveID = '+Temp)
+        I2C_Trans_SlaveID.config(text=Temp)
+        RegListBoxSetLabel = True
+    else:
+        GUIConsole_Print('I2C_SlaveID Wrong Format,Commant stoped')
+        return
+    Temp = I2C_Address.get()
+    Temp = re.sub(pattern=r'0[xX]', repl='', string=Temp, count=0)  # 先把0x去掉
+    if re.match(r'(([a-f0-9]?[a-f0-9]?[a-f0-9]?[a-f0-9]?))',Temp,re.I).span() == (0,4):
+        GUIConsole_Print('Address = '+ Temp)
+        RegListBoxSetLabel = True
+    else:
+        GUIConsole_Print('I2C_Address Wrong Format,Commant stoped')
+        return
+    Temp = I2C_Data.get()
+    Temp = re.sub(pattern=r'0[xX]',repl='',string=Temp,count=0)#先把0x去掉
+    if re.match(r'([a-f0-9]?[a-f0-9]?)',Temp,re.I).span() == (0,2):
+        GUIConsole_Print('Data = '+Temp)
+        RegListBoxSetLabel = True
+    else:
+        GUIConsole_Print('I2C_Data Wrong Format,Commant stoped')
+        return
+    Temp = I2C_Signal.get()
+    print(re.match(r'((.*),(.*))',Temp,re.I))
+    if re.match(r'((.*),(.*))',Temp,re.I):#检查信号名中间的分割逗号
+        GUIConsole_Print('I2C_Signal = '+ Temp)
+        RegListBoxSetLabel = True
+    else:
+        GUIConsole_Print('I2C_Signal Wrong Format,Commant stoped')
+        return
+    Temp = I2C_strFileName.get()
+    if re.match(r'[*].csv',Temp):#如果没填，则用地址+数据补充
+        I2C_strFileName.set(I2C_Address.get()+'_'+I2C_Data.get()+'.csv')
+        GUIConsole_Print('PatternName Set '+I2C_strFileName.get())
+        Temp = I2C_strFileName.get()
+        RegListBoxSetLabel = True
+    elif re.match(r'(.*).csv',Temp):
+        GUIConsole_Print(Temp)
+        RegListBoxSetLabel = True
+    else:
+        GUIConsole_Print('I2C_strFileName Wrong Format,Commant stoped')
+        return
+    if RegListBoxSetLabel:
+        TreeViewInsertValues(InputTreeViewControl = I2C_RegListBox
+                             ,InputValues =(('D,'if I2C_ModeSelect.get()==0 else 'C,')
+                             +'0x'+I2C_Address.get() + ',0x' + I2C_Data.get()+','))
+        GUIConsole_Print('PatternCreateModeSet to '+ ('Driver'if I2C_ModeSelect.get()==0 else 'Compare'))
 def DeleteSelectSequence():
     GUIConsole_Print("Now excute DeleteSelectSequence()")
     for SelectIID in I2C_RegListBox.selection():#selection 返回选择的所有IID，用循环逐个删除
         GUIConsole_Print(I2C_RegListBox.set(SelectIID)['seq'] + ' 已经删除')
         I2C_RegListBox.delete(SelectIID)
-
 def ReadFromInIFile():
     # GUIConsole_Print("你点击了ReadFromInIFile")
-    GUIConsole_Print(I2C_RINI_OBJ.ReadSlaveID())
-    GUIConsole_Print(I2C_RINI_OBJ.ReadWFTName())
-    GUIConsole_Print(I2C_RINI_OBJ.ReadSignals())
-    for Data in I2C_RINI_OBJ.ReadDataAfterCheck():
-        GUIConsole_Print(Data)
+    filename = filedialog.askopenfilename(filetypes=[('ini','INI')])
+    if filename != '':
+         GUIConsole_Print(filename)
+         I2C_RINI_OBJ = RINI.I2C(filename)
+         I2C_Trans_SlaveID.config(text=I2C_RINI_OBJ.ReadSlaveID())
+         # GUIConsole_Print(I2C_RINI_OBJ.ReadSlaveID())
+         I2C_strWFT.set(I2C_RINI_OBJ.ReadWFTName())
+         # GUIConsole_Print(I2C_RINI_OBJ.ReadWFTName())
+         I2C_strSignal.set(I2C_RINI_OBJ.ReadSignals())
+         # GUIConsole_Print(I2C_RINI_OBJ.ReadSignals())
+         for Data in I2C_RINI_OBJ.ReadDataAfterCheck():
+             TreeViewInsertValues(InputTreeViewControl=I2C_RegListBox,InputValues=Data)
+             # GUIConsole_Print(Data)
+    else:
+         GUIConsole_Print('您没有选择任何文件')
 def CreatePattern():
     GUIConsole_Print("你点击了CreatePattern")
 # def
-class GUIMessageGet:
+class GUIInfoGet:
     def __init__(self):
         print("Create GUIMessageGet Obj")
         pass
+    # def Entry
+
 ########################
 master = ttk.Window(
         title="PatternCreateTool " + _softwareversion,
@@ -101,25 +174,16 @@ I2C_CompareMode.grid(row=3, column=2)
 I2C_RegMessage = ttk.Labelframe(master=I2C_GUI_Frame, text="I2C_RegMessage")
 I2C_RegMessage.pack(side=LEFT, fill=BOTH,expand=True,pady=8,padx=5)
 ttk.Label(master=I2C_RegMessage, text="Trans_SlaveID").grid(row=0, column=0,pady=6,padx=4)
-ttk.Label(master=I2C_RegMessage, text="6A").grid(row=0, column=1,pady=6,padx=4)
+I2C_Trans_SlaveID =  ttk.Label(master=I2C_RegMessage, text="")
+I2C_Trans_SlaveID.grid(row=0, column=1,pady=6,padx=4)
 ttk.Label(master=I2C_RegMessage, text="Trans_RegList").grid(row=1, column=0,pady=6,padx=4)
-LIST = [
-    "D,0x32aa,0x30,",
-    "D,0x32ab,0x3f",
-    "C,0x3000,0x00,",
-    "C,0x3000,0x01,",
-    "C,0x3000,0x02,",
-    "C,0x3000,0x03,",
-    "C,0x3000,0x04,",
-    "C,0x3000,0x05,",
-    "C,0x3000,0x06,",
-    "C,0x3000,0x07,",
-    "C,0x3000,0x08,",
-]
+
 I2C_RegListBox = ttk.Treeview(I2C_RegMessage, columns="seq", show=HEADINGS)
-for row in LIST:
-    I2C_RegListBox.insert('', END, values=row)
 I2C_RegListBox.heading(column="seq", text="指令",anchor='center',command=OnTreeViewHeaderPressed)
+# defalut set for test now ,LIST has been deleted
+# for row in LIST:
+#     # I2C_RegListBox.insert('', END, values=row)
+#     TreeViewInsertValues(InputTreeViewControl=I2C_RegListBox,InputValues=row)
 I2C_RegListBox.grid(row=1, column=1,pady=6,padx=4)
 # I2C_RegListBox.column(0, width=200)
 I2C_RegListBox.column(0, anchor=W,width=utility.scale_size(I2C_RegMessage, 125),stretch=False)
@@ -142,10 +206,8 @@ GUIConsole.pack(side=BOTTOM, fill=BOTH,expand=True,pady=8,padx=5)
 # ttk.Label(GUIConsole,textvariable=GUIConsoleStr,font=("Consolas",10),anchor=W).grid(row=0,column=0)
 GUIConsoleSCR =  ttk.ScrolledText(master=GUIConsole,height=4)
 GUIConsoleSCR.grid(row=0,column=0)
-for line in LIST:
-        # GUIConsoleSCR.insert('end',
-        # time.strftime('[%Y-%m-%d %H:%M:%S]',time.localtime())+'  ' +line + '\n')#末尾插入
-        GUIConsole_Print(line)
+# for line in LIST:
+#         GUIConsole_Print(line)
 GUIMouseRightMenu = ttk.Menu(master=master)
 GUIMouseRightMenu.add_command(label="指令提示"
                     ,command=lambda:GUIConsole_Print("指令框内的为待转化的寄存器指令:),点击CreatePattern会转换里面所有的指令"))
@@ -159,7 +221,29 @@ master.bind("<Button-3>", lambda event:GUIMouseRightMenu.post(event.x_root, even
 GUIEdgeTopMenu = ttk.Menu(master=master)
 GUIEdgeTopMenu.add_command(label="文件")
 GUIEdgeTopMenu.add_command(label="查看")
-
+GUIEdgeTopMenu_ThemeMemu = ttk.Menu(master=GUIEdgeTopMenu)
+# for ThemeName in GUIThemes:#不知道为啥 不起作用
+#     print(ThemeName)
+#     GUIEdgeTopMenu_ThemeMemu.add_command(label=ThemeName,command=lambda :AppThemeSet(ThemeName))
+#     GUIEdgeTopMenu_ThemeMemu.add_separator()
+GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[0],command=lambda :ttk.Style().theme_use(GUIThemes[0]))
+GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[1],command=lambda :ttk.Style().theme_use(GUIThemes[1]))
+GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[2],command=lambda :ttk.Style().theme_use(GUIThemes[2]))
+GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[3],command=lambda :ttk.Style().theme_use(GUIThemes[3]))
+GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[4],command=lambda :ttk.Style().theme_use(GUIThemes[4]))
+GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[5],command=lambda :ttk.Style().theme_use(GUIThemes[5]))
+GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[6],command=lambda :ttk.Style().theme_use(GUIThemes[6]))
+GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[7],command=lambda :ttk.Style().theme_use(GUIThemes[7]))
+GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[8],command=lambda :ttk.Style().theme_use(GUIThemes[8]))
+GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[9],command=lambda :ttk.Style().theme_use(GUIThemes[9]))
+GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[10],command=lambda :ttk.Style().theme_use(GUIThemes[10]))
+GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[11],command=lambda :ttk.Style().theme_use(GUIThemes[11]))
+GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[12],command=lambda :ttk.Style().theme_use(GUIThemes[12]))
+GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[13],command=lambda :ttk.Style().theme_use(GUIThemes[13]))
+GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[14],command=lambda :ttk.Style().theme_use(GUIThemes[14]))
+GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[15],command=lambda :ttk.Style().theme_use(GUIThemes[15]))
+GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[16],command=lambda :ttk.Style().theme_use(GUIThemes[16]))
+GUIEdgeTopMenu.add_cascade (label="主题设置",menu=GUIEdgeTopMenu_ThemeMemu)
 ########################################
 SPI_Setting = ttk.Labelframe(master=NoteBookPage, text="SPI_Setting")
 SPI_Setting.pack()
