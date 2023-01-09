@@ -13,6 +13,42 @@ _softwareversion = 'V1.2'
 GUIThemes = ("flatly","litera",  "minty",  "lumen", "sandstone", "yeti", "pulse",
             "united", "morph", "journal", "darkly" ,"superhero", "solar",
             "cyborg", "vapor", "simplex",  "cerculean")
+def PatternTemplate():
+    PatternTemplateFrame = ttk.Toplevel(master=master,title="Pattern模板",size=(1000,800))
+    PatternTemplateFrame.position_center()
+    PatternTemplateTreeView = ttk.Treeview(master=PatternTemplateFrame,
+                                           columns=['label','wftname','sequence','signal1','signal2'],
+                                           show=HEADINGS,
+                                           height=40
+                                           )
+    PatternTemplateTreeView.heading(column="label", text="Label", anchor='center')
+    PatternTemplateTreeView.heading(column="wftname", text="WFT", anchor='center')
+    PatternTemplateTreeView.heading(column="sequence", text="sequence", anchor='center')
+    PatternTemplateTreeView.heading(column="signal1", text="SCL", anchor='center')
+    PatternTemplateTreeView.heading(column="signal2", text="SDA", anchor='center')
+    PatternTemplateTreeView.grid(row=0,column=0,)
+    ttk.Style().map('Treeview', background=[('selected', 'green')], foreground=[('selected', 'yellow')])
+    PatternTemplateTreeView.column(column="label", anchor=CENTER,minwidth=75
+                                   , width=utility.scale_size(PatternTemplateTreeView, 100), stretch=False)
+    PatternTemplateTreeView.column(column="wftname", anchor=CENTER,minwidth=75
+                                   , width=utility.scale_size(PatternTemplateTreeView, 100), stretch=False)
+    PatternTemplateTreeView.column(column="sequence", anchor=CENTER,minwidth=75
+                                   , width=utility.scale_size(PatternTemplateTreeView, 100), stretch=False)
+    PatternTemplateTreeView.column(column="signal1", anchor=CENTER,minwidth=75
+                                   , width=utility.scale_size(PatternTemplateTreeView, 100), stretch=False)
+    PatternTemplateTreeView.column(column="signal2", anchor=CENTER,minwidth=75
+                                   , width=utility.scale_size(PatternTemplateTreeView, 100), stretch=False)
+    for intvar in range(0,10):
+        PatternTemplateTreeView.insert('',END,values=['0','TS1','nop','0','0'])
+    for intvar in range(0,10):
+        PatternTemplateTreeView.insert('',END,values=['0','TS1','nop','1','0'])
+    for intvar in range(0,10):
+        PatternTemplateTreeView.insert('',END,values=['0','TS1','nop','H','H'])
+    # defalut set for test now ,LIST has been deleted
+    # for row in LIST:
+    #     # I2C_RegListBox.insert('', END, values=row)
+    #     TreeViewInsertValues(InputTreeViewControl=I2C_RegListBox,InputValues=row)
+
 def GUIConsole_Print(arg):
     GUIConsoleSCR.insert('end',
         time.strftime('[%Y-%m-%d %H:%M:%S]',time.localtime())+'  ' +arg + '\n')#末尾插入
@@ -34,58 +70,60 @@ def TreeViewInsertValues(InputTreeViewControl,InputValues):
 def AddRegSequence():
     # GUIConsole_Print("你点击了AddRegSequence")
     RegListBoxSetLabel = False #判断是否对I2CRegListBox 进行插入value
-    Temp = I2C_SlaveID.get()
-    Temp = re.sub(pattern=r'0[xX]',repl='',string=Temp,count=0)#先把0x去掉
+    TempI2C_SlaveID = I2C_SlaveID.get()
+    TempI2C_SlaveID = re.sub(pattern=r'0[xX]',repl='',string=TempI2C_SlaveID,count=0)#先把0x去掉
     # print(re.match(r'(([a-f0-9]?)([a-f0-9])?)',Temp,re.I).span())
 
-    if re.match(r'(([a-f0-9]?)([a-f0-9])?)',Temp,re.I).span() == (0,2):
-        GUIConsole_Print('SlaveID = '+Temp)
-        I2C_Trans_SlaveID.config(text=Temp)
+    if re.match(r'(([a-f0-9]?)([a-f0-9])?)',TempI2C_SlaveID,re.I).span() == (0,2):
+        GUIConsole_Print('SlaveID = '+TempI2C_SlaveID)
+        I2C_Trans_SlaveID.config(text=TempI2C_SlaveID)
         RegListBoxSetLabel = True
     else:
         GUIConsole_Print('I2C_SlaveID Wrong Format,Commant stoped')
         return
-    Temp = I2C_Address.get()
-    Temp = re.sub(pattern=r'0[xX]', repl='', string=Temp, count=0)  # 先把0x去掉
-    if re.match(r'(([a-f0-9]?[a-f0-9]?[a-f0-9]?[a-f0-9]?))',Temp,re.I).span() == (0,4):
-        GUIConsole_Print('Address = '+ Temp)
+    TempI2C_Address = I2C_Address.get()
+    TempI2C_Address = re.sub(pattern=r'0[xX]', repl='', string=TempI2C_Address, count=0)  # 先把0x去掉
+    if re.match(r'([a-f0-9]?[a-f0-9]?[a-f0-9]?[a-f0-9]?)',TempI2C_Address,re.I).span() == (0,4):
+        GUIConsole_Print('Address = '+ TempI2C_Address)
         RegListBoxSetLabel = True
     else:
-        GUIConsole_Print('I2C_Address Wrong Format,Commant stoped')
+        GUIConsole_Print('I2C_Address Wrong Format,Command stoped')
         return
-    Temp = I2C_Data.get()
-    Temp = re.sub(pattern=r'0[xX]',repl='',string=Temp,count=0)#先把0x去掉
-    if re.match(r'([a-f0-9]?[a-f0-9]?)',Temp,re.I).span() == (0,2):
-        GUIConsole_Print('Data = '+Temp)
+    TempI2C_Data = I2C_Data.get()
+    TempI2C_Data = re.sub(pattern=r'0[xX]',repl='',string=TempI2C_Data,count=0)#先把0x去掉
+    if re.match(r'([a-f0-9]?[a-f0-9]?)',TempI2C_Data,re.I).span() == (0,2):
+        GUIConsole_Print('Data = '+TempI2C_Data)
         RegListBoxSetLabel = True
     else:
-        GUIConsole_Print('I2C_Data Wrong Format,Commant stoped')
+        GUIConsole_Print('I2C_Data Wrong Format,Command stoped')
         return
-    Temp = I2C_Signal.get()
-    print(re.match(r'((.*),(.*))',Temp,re.I))
-    if re.match(r'((.*),(.*))',Temp,re.I):#检查信号名中间的分割逗号
-        GUIConsole_Print('I2C_Signal = '+ Temp)
+    TempI2C_Signal = I2C_Signal.get()
+    # print(re.match(r'((.*),(.*))',TempI2C_Signal,re.I))
+    if re.match(r'((.*),(.*))',TempI2C_Signal,re.I):#检查信号名中间的分割逗号
+        GUIConsole_Print('I2C_Signal = '+ TempI2C_Signal)
         RegListBoxSetLabel = True
     else:
-        GUIConsole_Print('I2C_Signal Wrong Format,Commant stoped')
+        GUIConsole_Print('I2C_Signal Wrong Format,Command stoped')
         return
-    Temp = I2C_strFileName.get()
-    if re.match(r'[*].csv',Temp):#如果没填，则用地址+数据补充
-        I2C_strFileName.set(I2C_Address.get()+'_'+I2C_Data.get()+'.csv')
+    TempI2C_strFileName = I2C_strFileName.get()
+    if  re.match(r'[*].csv',TempI2C_strFileName) is not None:
+        if re.match(r'[*].csv',TempI2C_strFileName).span()==(0,5):#如果没填，则用地址+数据补充
+            I2C_strFileName.set(TempI2C_Address+'_'+TempI2C_Data+'.csv')
+            GUIConsole_Print('PatternName Set '+I2C_strFileName.get())
+            # Temp = I2C_strFileName.get()
+            RegListBoxSetLabel = True
+    elif re.match(r'(.*)_(.*).csv',TempI2C_strFileName) is not None:
+        I2C_strFileName.set(TempI2C_Address + '_' + TempI2C_Data + '.csv')
         GUIConsole_Print('PatternName Set '+I2C_strFileName.get())
-        Temp = I2C_strFileName.get()
-        RegListBoxSetLabel = True
-    elif re.match(r'(.*).csv',Temp):
-        GUIConsole_Print(Temp)
         RegListBoxSetLabel = True
     else:
-        GUIConsole_Print('I2C_strFileName Wrong Format,Commant stoped')
+        GUIConsole_Print('I2C_strFileName Wrong Format,Command stoped')
         return
     if RegListBoxSetLabel:
         TreeViewInsertValues(InputTreeViewControl = I2C_RegListBox
                              ,InputValues =(('D,'if I2C_ModeSelect.get()==0 else 'C,')
-                             +'0x'+I2C_Address.get() + ',0x' + I2C_Data.get()+','))
-        GUIConsole_Print('PatternCreateModeSet to '+ ('Driver'if I2C_ModeSelect.get()==0 else 'Compare'))
+                             +'0x'+TempI2C_Address + ',0x' + TempI2C_Data+','))
+        # GUIConsole_Print('PatternCreateModeSet to '+ ('Driver'if I2C_ModeSelect.get()==0 else 'Compare'))
 def DeleteSelectSequence():
     GUIConsole_Print("Now excute DeleteSelectSequence()")
     for SelectIID in I2C_RegListBox.selection():#selection 返回选择的所有IID，用循环逐个删除
@@ -244,6 +282,7 @@ GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[14],command=lambda :ttk.Sty
 GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[15],command=lambda :ttk.Style().theme_use(GUIThemes[15]))
 GUIEdgeTopMenu_ThemeMemu.add_command(label=GUIThemes[16],command=lambda :ttk.Style().theme_use(GUIThemes[16]))
 GUIEdgeTopMenu.add_cascade (label="主题设置",menu=GUIEdgeTopMenu_ThemeMemu)
+GUIEdgeTopMenu.add_command(label="Pattern模板",command=PatternTemplate)
 ########################################
 SPI_Setting = ttk.Labelframe(master=NoteBookPage, text="SPI_Setting")
 SPI_Setting.pack()
